@@ -186,3 +186,55 @@ nTimes' :: a -> Int -> [a]
 nTimes' a n =
   let t = a : t
    in take n t
+
+-- | 3.1
+-- >>> oddsOnly' [1,2,3,4,5,6,7]
+-- [7,5,3,1]
+oddsOnly' :: Integral a => [a] -> [a] -- Почему наоборот?
+oddsOnly' xs =
+  let cc (x : xs) r = if odd x then cc xs (x : r) else cc xs r
+      cc [] r = r
+   in cc xs []
+
+-- >>> oddsOnly [1,2,3,4,5,6,7]
+oddsOnly :: Integral a => [a] -> [a]
+oddsOnly xs =
+  let cc (x : xs) r = if odd x then cc xs (x : r) else cc xs r
+      cc [] r = r
+   in reverse $ cc xs []
+
+-- | 3.1
+isPalindrome :: Eq a => [a] -> Bool
+isPalindrome x = x == reverse x
+
+-- | 3.1 Составьте список сумм соответствующих элементов трех заданных списков.
+-- Длина результирующего списка должна быть равна длине самого длинного из
+-- заданных списков, при этом «закончившиеся» списки не должны давать вклада в суммы.
+sum3 :: Num a => [a] -> [a] -> [a] -> [a]
+sum3 (x : xs) (y : ys) (z : zs) = (x + y + z) : sum3 xs ys zs
+sum3 (x : xs) (y : ys) _ = (x + y) : sum3 xs ys []
+sum3 (x : xs) _ (z : zs) = (x + z) : sum3 xs [] zs
+sum3 _ (y : ys) (z : zs) = (y + z) : sum3 [] ys zs
+sum3 (x : xs) _ _ = x : sum3 xs [] []
+sum3 _ (y : ys) _ = y : sum3 [] ys []
+sum3 _ _ (z : zs) = z : sum3 [] [] zs
+sum3 _ _ _ = []
+
+-- | 3.1 Напишите функцию groupElems которая группирует одинаковые элементы в
+-- списке (если они идут подряд) и возвращает список таких групп.
+groupElems :: Eq a => [a] -> [[a]]
+groupElems [] = []
+groupElems xs =
+  let (a, b) = span (== head xs) xs
+   in a : groupElems b
+
+groupElems' :: Eq a => [a] -> [[a]]
+groupElems' xs =
+  let f [] [] m = m
+      f (x : xs) [] m = f xs [x] m
+      f [] ys m = ys : m
+      f (x : xs) ys m =
+        if x == head ys
+          then f xs (x : ys) m
+          else f xs [] (ys : m)
+   in reverse $ f xs [] []

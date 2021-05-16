@@ -1,6 +1,6 @@
 module Lib where
 
-import Data.Char (isDigit)
+import Data.Char (isDigit, isUpper)
 import Data.Function (on)
 
 -- | Возвращает сумму и кол-во цифр числа
@@ -27,7 +27,7 @@ integration f a b =
       divisions = (b - a) / 1000
 
       trapezoid :: Double -> Double -> Double
-      trapezoid x y = ((f y + f x) / 2) * divisions
+      trapezoid x y = (f y + f x) / 2 * divisions
 
       k :: Double -> Double -> Double -> Double
       k n point result =
@@ -42,7 +42,7 @@ integrationList f a b =
       divisions = (b - a) / 1000
 
       trapezoid :: Double -> Double
-      trapezoid x = ((f (x + divisions) + f x) / 2) * divisions
+      trapezoid x = (f (x + divisions) + f x) / 2 * divisions
    in sum $ map trapezoid [a, (a + divisions) .. b]
 
 -- | Напишите функцию трех аргументов getSecondFrom, полиморфную по каждому из них,
@@ -73,7 +73,7 @@ sumFstFst' :: ((Integer, b1), b2) -> ((Integer, b1), b2) -> Integer
 sumFstFst' = (+) `on` \x -> fst $ fst x
 
 sumFstFst'' :: ((Integer, b1), b2) -> ((Integer, b1), b2) -> Integer
-sumFstFst'' = (+) `on` (fst . fst)
+sumFstFst'' = (+) `on` fst . fst
 
 -- | Реализуйте функцию on3, имеющую семантику, схожую с on, но принимающую
 --  в качестве первого аргумента трехместную функцию:
@@ -278,11 +278,68 @@ squares'n'cubes = concatMap (\x -> [x ^ 2, x ^ 3])
 -- которая возвращает все перестановки, которые можно получить из данного списка, в любом порядке.
 -- Считайте, что все элементы в списке уникальны, и что для пустого списка имеется одна перестановка.
 -- >>> perms [1,2,3]
--- [[2,3,1],[3,1,2],[1,2,3],[1,3,2],[2,1,3],[3,2,1]]
--- >>> perms [1,2,3,4]
+-- [[1,2,3],[1,3,2],[2,3,1],[2,1,3],[3,2,1],[3,1,2]]
+perms :: [a] -> [[a]]
+perms xs = k xs []
+  where
+    k [] _ = [[]]
+    k [y] ys = map (y :) (k ys [])
+    k (y : ys) zs = k [y] (ys ++ zs) ++ k ys (y : zs)
 
--- perms :: [a] -> [[a]]
-perms elements =
-  let k s@(x : xs) = map (x :) $ xs : k xs
-      k [] = []
-   in k elements
+-- | Реализуйте функцию delAllUpper, удаляющую из текста все слова, целиком состоящие из символов в верхнем регистре.
+-- Предполагается, что текст состоит только из символов алфавита и пробелов, знаки пунктуации, цифры и т.п. отсутствуют.
+delAllUpper :: String -> String
+delAllUpper = unwords . filter (not . all isUpper) . words
+
+-- | Напишите функцию max3, которой передаются три списка одинаковой длины и которая возвращает список той же длины,
+-- содержащий на k-ой позиции наибольшее значение из величин на этой позиции в списках-аргументах.
+-- >>> max3 [7,2,9] [3,6,8] [1,8,10]
+max3 :: Ord a => [a] -> [a] -> [a] -> [a]
+max3 = zipWith3 (\x y z -> maximum [x, y, z])
+
+-- | Реализуйте c использованием функции zipWith функцию fibStream, возвращающую бесконечный список чисел Фибоначчи.
+-- >>> take 10 fibStream
+-- [0,1,1,2,3,5,8,13,21,34]
+fibStream :: [Integer]
+fibStream = 0 : 1 : zipWith (+) fibStream (tail fibStream)
+
+-- | Предположим, что функция repeat, была бы определена следующим образом:
+repeat :: a -> [a]
+repeat = iterate repeatHelper
+
+repeatHelper :: a -> a
+repeatHelper = id
+
+-- | Пусть задан тип Odd нечетных чисел следующим образом:
+-- Сделайте этот тип представителем класса типов Enum
+newtype Odd = Odd Integer
+  deriving (Eq, Show)
+
+instance Enum Odd where
+  toEnum x
+    | odd x = Odd $ toInteger x
+    | otherwise = error "oops!"
+  fromEnum (Odd x) = fromInteger x
+  succ (Odd x) = Odd (x + 2)
+  pred (Odd x) = Odd (x - 2)
+  enumFrom x = x : enumFrom (succ x)
+  enumFromTo (Odd x) (Odd y)
+    | x <= y = takeWhile (/= (succ $ Odd y)) $ enumFrom (Odd x)
+    | x > y = []
+    where
+      enumDownFrom x = x : enumDownFrom (pred x)
+  enumFromThen (Odd x) (Odd y) = Odd x : enumFromThen (Odd y) (Odd $ y + y - x)
+  enumFromThenTo (Odd x) (Odd y) (Odd z)
+    | x < z && x > y = []
+    | x > z && x < y = []
+    | x > z && x == y = []
+    | x < z = takeWhile (\(Odd x) -> x <= z) $ enumFromThen (Odd x) (Odd y)
+    | x >= z = takeWhile (\(Odd x) -> x >= z) $ enumFromThen (Odd x) (Odd y)
+
+-- | Пусть есть список положительных достоинств монет coins, отсортированный по возрастанию. Воспользовавшись механизмом генераторов списков, напишите функцию change, которая разбивает переданную ей положительную сумму денег на монеты достоинств из списка coins всеми возможными способами.
+coins = [2, 3, 7]
+
+-- change :: (Ord a, Num a) => a -> [[a]]
+change a = give coins a
+  where
+    give a x = [k + j | k <- a, j <- a]

@@ -1,7 +1,10 @@
 module Lib where
 
+import Control.Exception
 import Data.Char (isDigit, isUpper)
 import Data.Function (on)
+import Data.List
+import System.IO
 
 -- | Возвращает сумму и кол-во цифр числа
 -- >>> sum'n'count 64
@@ -137,6 +140,7 @@ instance Printable Bool where
   toString x
     | x = "true"
     | not x = "false"
+    | otherwise = undefined
 
 instance Printable () where
   toString x = "unit type"
@@ -326,6 +330,7 @@ instance Enum Odd where
   enumFromTo (Odd x) (Odd y)
     | x <= y = takeWhile (/= (succ $ Odd y)) $ enumFrom (Odd x)
     | x > y = []
+    | otherwise = undefined
     where
       enumDownFrom x = x : enumDownFrom (pred x)
   enumFromThen (Odd x) (Odd y) = Odd x : enumFromThen (Odd y) (Odd $ y + y - x)
@@ -335,11 +340,49 @@ instance Enum Odd where
     | x > z && x == y = []
     | x < z = takeWhile (\(Odd x) -> x <= z) $ enumFromThen (Odd x) (Odd y)
     | x >= z = takeWhile (\(Odd x) -> x >= z) $ enumFromThen (Odd x) (Odd y)
+    | otherwise = undefined
 
--- | Пусть есть список положительных достоинств монет coins, отсортированный по возрастанию. Воспользовавшись механизмом генераторов списков, напишите функцию change, которая разбивает переданную ей положительную сумму денег на монеты достоинств из списка coins всеми возможными способами.
+-- | Пусть есть список положительных достоинств монет coins, отсортированный по возрастанию.
+-- Воспользовавшись механизмом генераторов списков, напишите функцию change,
+-- которая разбивает переданную ей положительную сумму денег на монеты достоинств
+-- из списка coins всеми возможными способами.
+coins :: [Integer]
 coins = [2, 3, 7]
 
--- change :: (Ord a, Num a) => a -> [[a]]
-change a = give coins a
+-- >>> change' 7
+-- [[3,2,2],[2,3,2],[2,2,3],[7]]
+change' :: Integer -> [[Integer]]
+change' sum = h sum []
   where
-    give a x = [k + j | k <- a, j <- a]
+    h sum last
+      | sum < 0 = []
+      | sum == 0 = [last]
+      | otherwise = concatMap (\coin -> h (sum - coin) (coin : last)) coins
+
+-- | Напишите реализацию функции concatList через foldr
+{-# ANN concatList "HLint: ignore Use concat" #-} -- ignore
+concatList :: [[a]] -> [a]
+concatList = foldr (++) []
+
+-- | Используя функцию foldr, напишите реализацию функции lengthList, вычисляющей количество элементов в списке.
+-- >>> lengthList [1,2,3,4,5]
+-- 5
+lengthList :: [a] -> Int
+lengthList = foldr (\x s -> s + 1) 0
+
+-- | Реализуйте функцию sumOdd, которая суммирует элементы списка целых чисел, имеющие нечетные значения:
+sumOdd :: [Integer] -> Integer
+sumOdd = foldr (\x s -> if odd x then x + s else s) 0
+
+-- | Реализуйте функцию meanList, которая находит среднее значение
+-- элементов списка, используя однократный вызов функции свертки.
+-- >>> meanList [2,2,8,8]
+-- 5.0
+meanList :: [Double] -> Double
+meanList = (\(x, y) -> y / x) . foldr (\x (s, m) -> (s + 1, x + m)) (0, 0)
+
+-- | Используя однократный вызов свертки, реализуйте функцию evenOnly, которая
+-- выбрасывает из списка элементы, стоящие на нечетных местах, оставляя только четные.
+-- >>> evenOnly [1..10]
+evenOnly :: [a] -> [a]
+evenOnly = snd . foldr (\x (p, e) -> if even p then (p + 1, x : e) else (p + 1, e)) (1, [])

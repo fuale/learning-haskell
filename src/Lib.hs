@@ -383,6 +383,29 @@ meanList = (\(x, y) -> y / x) . foldr (\x (s, m) -> (s + 1, x + m)) (0, 0)
 
 -- | Используя однократный вызов свертки, реализуйте функцию evenOnly, которая
 -- выбрасывает из списка элементы, стоящие на нечетных местах, оставляя только четные.
+evenOnly' :: [a] -> [a]
+evenOnly' = reverse . snd . foldl (\(p, e) x -> f x (p, e)) (1, [])
+  where
+    f x (p, e)
+      | even p = (p + 1, x : e)
+      | otherwise = (p + 1, e)
+
+-- :D
 -- >>> evenOnly [1..10]
+-- [2,4,6,8,10]
 evenOnly :: [a] -> [a]
-evenOnly = snd . foldr (\x (p, e) -> if even p then (p + 1, x : e) else (p + 1, e)) (1, [])
+evenOnly (_ : a : as) = a : evenOnly as
+evenOnly _ = []
+
+-- | Напишите реализацию функции, возвращающей последний элемент списка, через foldl1.
+-- >>> lastElem [1,2,3,4,5]
+lastElem :: [a] -> a
+lastElem = foldl1 (const id)
+
+-- | Используя unfoldr, реализуйте функцию, которая возвращает в обратном алфавитном порядке список символов, попадающих в
+-- заданный парой диапазон. Попадание символа x в диапазон пары (a,b) означает, что x >= a и x <= b.
+-- >>> revRange ('a', 'g')
+revRange :: (Char, Char) -> [Char]
+revRange = unfoldr g
+  where
+    g (x, y) = if y >= x then Just (y, (x, pred y)) else Nothing

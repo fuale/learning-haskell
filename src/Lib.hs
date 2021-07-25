@@ -1,10 +1,10 @@
 module Lib where
 
-import Control.Exception
 import Data.Char (isDigit, isUpper)
-import Data.Function (on)
-import Data.List
-import System.IO
+import Data.Function (on, (&))
+import Data.List (unfoldr)
+import Data.Time.Clock (UTCTime)
+import Data.Time.Format (defaultTimeLocale, formatTime)
 
 -- | Возвращает сумму и кол-во цифр числа
 -- >>> sum'n'count 64
@@ -409,3 +409,243 @@ revRange :: (Char, Char) -> [Char]
 revRange = unfoldr g
   where
     g (x, y) = if y >= x then Just (y, (x, pred y)) else Nothing
+
+-- | Тип данных Color определен следующим образом
+-- Определите экземпляр класса Show для типа Color, сопоставляющий каждому из трех цветов его текстовое представление.
+data Color = Red | Green | Blue
+
+--- >>> show Red
+-- "Red"
+
+instance Show Color where
+  show Red = "Red"
+  show Green = "Green"
+  show Blue = "Blue"
+
+charToInt :: Char -> Int
+charToInt '0' = 0
+charToInt '1' = 1
+charToInt '2' = 2
+charToInt '3' = 3
+charToInt '4' = 4
+charToInt '5' = 5
+charToInt '6' = 6
+charToInt '7' = 7
+charToInt '8' = 8
+charToInt '9' = 9
+charToInt _ = undefined
+
+-- | Определите (частичную) функцию stringToColor, которая по строковому представлению
+-- цвета как в прошлой задаче возвращает исходный цвет.
+stringToColor :: String -> Color
+stringToColor "Red" = Red
+stringToColor "Green" = Green
+stringToColor "Blue" = Blue
+stringToColor _ = undefined
+
+-- | Тип LogLevel описывает различные уровни логирования.
+data LogLevel = Error | Warning | Info
+
+-- | Определите функцию cmp, сравнивающую элементы типа LogLevel так, чтобы было верно, что Error > Warning > Info.
+-- >>> cmp Error Warning
+-- GT
+cmp :: LogLevel -> LogLevel -> Ordering
+cmp Warning Warning = EQ
+cmp Error Error = EQ
+cmp Info Info = EQ
+cmp Error _ = GT
+cmp Warning Error = LT
+cmp Warning Info = GT
+cmp Info _ = LT
+
+-- | Пусть объявлен следующий тип данных:
+data Result = Fail | Success
+
+data SomeData = Int
+
+-- И допустим определен некоторый тип данных SomeData и некоторая функция
+doSomeWork :: SomeData -> (Result, Int)
+doSomeWork = undefined
+
+-- возвращающая результат своей работы и либо код ошибки в случае неудачи, либо 0 в случае успеха.
+-- Определите функцию processData, которая вызывает doSomeWork и возвращает строку "Success" в случае ее успешного завершения,
+-- либо строку "Fail: N" в случае неудачи, где N — код ошибки.
+
+processData :: SomeData -> String
+processData f = case doSomeWork f of
+  (Success, _) -> "Success"
+  (_, x) -> "Fail: " ++ show x
+
+data Point = Point Double Double
+
+origin :: Point
+origin = Point 0.0 0.0
+
+distanceToOrigin :: Point -> Double
+distanceToOrigin (Point x y) = sqrt (x ^ 2 + y ^ 2)
+
+distance'old :: Point -> Point -> Double
+distance'old (Point x1 y1) (Point x2 y2) = sqrt ((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+
+-- | Определим тип фигур Shape:
+data Shape = Circle Double | Rectangle Double Double
+
+-- У него два конструктора: Circle r — окружность радиуса r,
+-- и Rectangle a b — прямоугольник с размерами сторон a и b. Реализуйте функцию area,
+-- возвращающую площадь фигуры. Константа pi уже определена в стандартной библиотеке.
+
+area :: Shape -> Double
+area (Circle r) = pi * r ^ 2
+area (Rectangle a b) = a * b
+
+-- | В одном из прошлых заданий мы встречали тип Result и функцию doSomeWork:
+-- Функция doSomeWork возвращала результат своей работы и либо код ошибки в случае неудачи,
+-- либо 0 в случае успеха. Такое определение функции не является наилучшим, так как в случае
+-- успеха мы вынуждены возвращать некоторое значение, которое не несет никакой смысловой нагрузки.
+-- Используя функцию doSomeWork, определите функцию doSomeWork' так, чтобы она возвращала код
+-- ошибки только в случае неудачи. Для этого необходимо определить тип Result'. Кроме того, определите
+-- instance Show для Result' так, чтобы show возвращал "Success" в случае успеха и "Fail: N" в случае
+-- неудачи, где N — код ошибки.
+data Result' = Fail' Int | Success'
+
+instance Show Result' where
+  show (Fail' m) = "Fail: " ++ show m
+  show Success' = "Success"
+
+doSomeWork' :: SomeData -> Result'
+doSomeWork' m = case doSomeWork m of
+  (Success, _) -> Success'
+  (Fail, x) -> Fail' x
+
+-- | Реализуйте функцию isSquare, проверяющую является ли фигура квадратом.
+square :: Double -> Shape
+square a = Rectangle a a
+
+isSquare :: Shape -> Bool
+isSquare (Rectangle x y)
+  | x == y = True
+  | otherwise = False
+isSquare _ = False
+
+-- | Целое число можно представить как список битов со знаком.
+-- Реализуйте функции сложения и умножения для таких целых чисел, считая, что младшие биты идут
+-- в начале списка, а старшие — в конце. Можно считать, что на вход не будут подаваться числа с ведущими нулями.
+data Bit = Zero | One
+
+data Sign = Minus | Plus
+
+data Z = Z Sign [Bit]
+
+instance Show Bit where
+  show Zero = "0"
+  show One = "1"
+
+instance Show Z where
+  show (Z Minus bit) = "-" ++ show bit
+  show (Z Plus bit) = "+" ++ show bit
+
+toNum :: [Bit] -> Int -> Int
+toNum (One : xs) x = 1 * x + toNum xs x * 2
+toNum (Zero : xs) x = toNum xs x * 2
+toNum [] _ = 0
+
+toBit :: Int -> [Bit]
+toBit 0 = []
+toBit x = (if odd x then One else Zero) : toBit (x `div` 2)
+
+add :: Z -> Z -> Z
+add (Z m1 s1) (Z m2 s2) = Z m s
+  where
+    helper a b = case m1 of
+      Minus -> case m2 of
+        Minus -> toNum a 1 + toNum b 1
+        Plus -> toNum b 1 - toNum a 1
+      Plus -> case m2 of
+        Minus -> toNum a 1 - toNum b 1
+        Plus -> toNum a 1 + toNum b 1
+
+    x = helper s1 s2
+    s = toBit $ abs x
+    m = if x >= 0 then Plus else Minus
+
+mul :: Z -> Z -> Z
+mul (Z m1 s1) (Z m2 s2) = Z m (toBit $ abs x)
+  where
+    x = toNum s1 1 * toNum s2 1
+    m = case m1 of
+      Minus -> case m2 of
+        Minus -> Plus
+        Plus -> Minus
+      Plus -> case m2 of
+        Minus -> Minus
+        Plus -> Plus
+
+-- 14 * 10 = 140
+-- 1110 * 1010 = 10001100df
+-- >>> mul (Z Plus [Zero, One, One, One]) (Z Plus [Zero, One, Zero, One])
+-- +[0,0,1,1,0,0,0,1]
+
+-- | Определите тип записи, который хранит элементы лога. Имя конструктора должно
+-- совпадать с именем типа, и запись должна содержать три поля:
+
+-- timestamp — время, когда произошло событие (типа UTCTime);
+-- logLevel — уровень события (типа LogLevel);
+-- message — сообщение об ошибке (типа String).
+
+-- Определите функцию logLevelToString, возвращающую текстуальное представление типа LogLevel,
+-- и функцию logEntryToString, возвращающую текстуальное представление записи в виде:
+-- <время>: <уровень>: <сообщение>
+-- Для преобразование типа UTCTime в строку используйте функцию timeToString.
+timeToString :: UTCTime -> String
+timeToString = formatTime defaultTimeLocale "%a %d %T"
+
+data LogEntry = LogEntry {timestamp :: UTCTime, logLevel :: LogLevel, message :: String}
+
+logLevelToString :: LogLevel -> String
+logLevelToString Info = "Info"
+logLevelToString Error = "Error"
+logLevelToString Warning = "Warning"
+
+logEntryToString :: LogEntry -> String
+logEntryToString e = timeToString (timestamp e) ++ ": " ++ logLevelToString (logLevel e) ++ ": " ++ message e
+
+-- | Определите функцию updateLastName person1 person2, которая меняет фамилию person2 на фамилию person1.
+data Person = Person {firstName :: String, lastName :: String, age :: Int}
+
+updateLastName :: Person -> Person -> Person
+updateLastName p1 p2 = p2 {lastName = lastName p1}
+
+-- | Определить функцию abbrFirstName, которая сокращает имя до первой буквы с точкой, то есть, если имя было "Ivan", то после
+-- применения этой функции оно превратится в "I.". Однако, если имя было короче двух символов, то оно не меняется.
+abbrFirstName :: Person -> Person
+abbrFirstName p = p {firstName = if length (firstName p) > 1 then head (firstName p) : "." else firstName p}
+
+-- | Реализуйте функции distance, считающую расстояние между двумя точками с вещественными координатами,
+-- и manhDistance, считающую манхэттенское расстояние между двумя точками с целочисленными координатами.
+data Coord a = Coord a a
+
+distance :: Coord Double -> Coord Double -> Double
+distance (Coord x1 y1) (Coord x2 y2) = sqrt ((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+
+manhDistance :: Coord Int -> Coord Int -> Int
+manhDistance (Coord x1 y1) (Coord x2 y2) = abs (x1 - x2) + abs (y1 - y2)
+
+-- Плоскость разбита на квадратные ячейки. Стороны ячеек параллельны осям координат.
+-- Координаты углов ячейки с координатой (0,0) имеют неотрицательные координаты. Один из
+-- углов этой ячейки имеет координату (0,0). С ростом координат ячеек увеличиваются координаты точек внутри этих ячеек.
+
+-- Реализуйте функции getCenter, которая принимает координату ячейки и возвращает координату
+-- ее центра, и функцию getCell, которая принимает координату точки и возвращает номер ячейки
+--  в которой находится данная точка. В качестве первого аргумента обе эти функции принимают ширину ячейки
+
+getCenter :: Double -> Coord Int -> Coord Double
+getCenter w (Coord x1 y1) = Coord x2 y2
+  where
+    x2 = w * fromIntegral x1 + (w / 2)
+    y2 = w * fromIntegral y1 + (w / 2)
+
+getCell :: Double -> Coord Double -> Coord Int
+getCell w (Coord x1 y1) = Coord x2 y2
+  where
+    x2 = floor (x1 / w)
+    y2 = floor (y1 / w)

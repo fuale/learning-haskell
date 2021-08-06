@@ -3,6 +3,7 @@ module Lib where
 import Data.Char (isDigit, isUpper)
 import Data.Function (on, (&))
 import Data.List (unfoldr)
+import Data.Maybe (fromMaybe)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 
@@ -649,3 +650,20 @@ getCell w (Coord x1 y1) = Coord x2 y2
   where
     x2 = floor (x1 / w)
     y2 = floor (y1 / w)
+
+-- | Реализуйте функцию, которая ищет в строке первое вхождение символа, который является цифрой,
+-- и возвращает Nothing, если в строке нет цифр.
+findDigit :: [Char] -> Maybe Char
+findDigit [] = Nothing
+findDigit (x : xs) = if isDigit x then Just x else findDigit xs
+
+findDigitOrX :: [Char] -> Char
+findDigitOrX xs = fromMaybe 'X' (findDigit xs)
+
+maybeToList :: Maybe a -> [a]
+maybeToList Nothing = []
+maybeToList (Just x) = [x]
+
+listToMaybe :: [a] -> Maybe a
+listToMaybe [] = Nothing
+listToMaybe xs = Just $ head xs

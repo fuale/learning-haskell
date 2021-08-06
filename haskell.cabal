@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Module44
   other-modules:
       Paths_haskell
   hs-source-dirs:

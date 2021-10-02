@@ -667,3 +667,16 @@ maybeToList (Just x) = [x]
 listToMaybe :: [a] -> Maybe a
 listToMaybe [] = Nothing
 listToMaybe xs = Just $ head xs
+
+data List a = Nil | Cons a (List a) deriving (Show)
+
+--- >>> fromList (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))
+-- [1,2,3,4]
+fromList :: List a -> [a]
+fromList (Cons x xs) = x : fromList xs
+fromList Nil = []
+
+--- >>> toList [1, 2, 3, 4]
+-- Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))
+toList :: [a] -> List a
+toList = foldr Cons Nil

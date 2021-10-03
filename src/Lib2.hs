@@ -1,7 +1,7 @@
 module Lib2 where
 
 import Data.Bits
-import qualified Data.Semigroup
+import Data.Semigroup
 
 data Nat = Zero | Suc Nat deriving (Show)
 
@@ -150,14 +150,4 @@ instance Semigroup Xor where
 
 instance Monoid Xor where
   mempty = Xor False
-  mappend = (Data.Semigroup.<>)
-
-newtype Maybe' a = Maybe' {getMaybe :: Maybe a}
-  deriving (Eq, Show)
-
-instance Monoid a => Semigroup (Maybe' a) where
-  a <> b = b
-
-instance Monoid a => Monoid (Maybe' a) where
-  mempty = Maybe' Nothing
   mappend = (Data.Semigroup.<>)

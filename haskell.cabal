@@ -27,7 +27,10 @@ library
   exposed-modules:
       Lib
       Lib2
+      Lib3
+      Lib4
       Module44
+      Module5
   other-modules:
       Paths_haskell
   hs-source-dirs:

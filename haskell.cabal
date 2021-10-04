@@ -31,6 +31,7 @@ library
       Lib4
       Module44
       Module5
+      Module52
   other-modules:
       Paths_haskell
   hs-source-dirs:
